@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Evidence Lookup{% endblock %}
+{% block content %}
+
+<div class="section-label">Evidence Management &mdash; Record Lookup</div>
+<p class="hint-text">
+  Enter a record ID to retrieve the full custody details and access the evidence file.
+  Ledger entries are permanent; only the physical evidence copy can be removed.
+</p>
+
+<!-- Search box -->
+<form method="GET" action="{{ url_for('lookup') }}" class="lookup-form" id="lookup-form">
+  <div class="lookup-input-wrap">
+    <span class="lookup-hash-icon">&#35;</span>
+    <input
+      type="number"
+      name="id"
+      id="lookup-id"
+      class="lookup-input"
+      placeholder="Enter record ID…"
+      min="1"
+      value="{{ query_id or '' }}"
+      autocomplete="off"
+    >
+    <button type="submit" class="btn btn--primary lookup-btn">Retrieve</button>
+  </div>
+</form>
+
+{% if record %}
+<!-- ── Record card ── -->
+<div class="evidence-card" id="evidence-card">
+  <div class="evidence-card__tape"></div>
+
+  <div class="evidence-card__header">
+    <div class="evidence-card__id">
+      <span class="hash-label">RECORD</span>
+      <span class="mono" style="font-size:22px; font-weight:700;">#{{ record.id }}</span>
+    </div>
+    <span class="stamp stamp--{{ record.status|lower }}">{{ record.status }}</span>
+  </div>
+
+  <div class="evidence-grid">
+    <div class="evidence-field">
+      <span class="evidence-field__label">Custodian / User</span>
+      <span class="evidence-field__value mono">{{ record.username }}</span>
+    </div>
+    <div class="evidence-field">
+      <span class="evidence-field__label">Filename</span>
+      <span class="evidence-field__value mono">{{ record.filename }}</span>
+    </div>
+    <div class="evidence-field">
+      <span class="evidence-field__label">Upload Time</span>
+      <span class="evidence-field__value mono">{{ record.upload_time }}</span>
+    </div>
+    <div class="evidence-field">
+      <span class="evidence-field__label">Status</span>
+      <span class="evidence-field__value">
+        <span class="stamp stamp--{{ record.status|lower }} stamp--sm">{{ record.status }}</span>
+      </span>
+    </div>
+    <div class="evidence-field evidence-field--full">
+      <span class="evidence-field__label">SHA-256 File Hash</span>
+      <span class="evidence-field__value mono break-all">{{ record.file_hash }}</span>
+    </div>
+    {% if record.prev_file_hash %}
+    <div class="evidence-field evidence-field--full">
+      <span class="evidence-field__label">Previous File Hash (compared against)</span>
+      <span class="evidence-field__value mono break-all" style="color:var(--ink-faint);">{{ record.prev_file_hash }}</span>
+    </div>
+    {% endif %}
+    <div class="evidence-field evidence-field--full">
+      <span class="evidence-field__label">Record Chain Hash</span>
+      <span class="evidence-field__value mono break-all" style="font-size:12px; color:var(--ink-faint);">{{ record.record_hash }}</span>
+    </div>
+  </div>
+
+  <!-- Evidence file actions -->
+  <div class="evidence-actions">
+    {% if file_exists %}
+      <a class="btn btn--primary" href="{{ url_for('download_evidence', record_id=record.id) }}" id="btn-download-{{ record.id }}">
+        ⬇ Download Evidence Copy
+      </a>
+      <form
+        method="POST"
+        action="{{ url_for('delete_evidence', record_id=record.id) }}"
+        class="inline-form"
+        id="delete-form-{{ record.id }}"
+        onsubmit="return confirmDelete({{ record.id }}, '{{ record.filename }}')"
+      >
+        <button type="submit" class="btn btn--danger" id="btn-delete-{{ record.id }}">
+          🗑 Delete Evidence Copy
+        </button>
+      </form>
+      <span class="evidence-note">
+        Deleting removes only the physical file. The ledger record and chain hash are permanent.
+      </span>
+    {% else %}
+      <span class="stamp stamp--removed">Evidence File Removed</span>
+      <span class="evidence-note">
+        The physical file was removed. The ledger entry, SHA-256 hash, and chain remain intact above.
+      </span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="lookup-footer-links">
+  <a class="link-btn" href="{{ url_for('history', filename=record.filename) }}">View full history for "{{ record.filename }}" →</a>
+  &nbsp;&nbsp;
+  <a class="link-btn" href="{{ url_for('dashboard') }}">← Dashboard</a>
+</div>
+
+{% elif query_id %}
+<div class="empty-state lookup-not-found">
+  <span style="font-size:36px;">🗂</span>
+  <p>No record found with ID <strong class="mono">#{{ query_id }}</strong>.</p>
+  <p style="font-size:13px; color:var(--ink-faint);">Check the record ID in the Full Ledger view.</p>
+  <a class="link-btn" href="{{ url_for('ledger') }}">Open Full Ledger →</a>
+</div>
+{% endif %}
+
+<script>
+function confirmDelete(id, filename) {
+  return confirm(
+    "DELETE EVIDENCE FILE — CONFIRM\n\n" +
+    "Record #" + id + " · " + filename + "\n\n" +
+    "This will permanently remove the physical file from the evidence store.\n" +
+    "The ledger entry and all chain hashes will remain unchanged.\n\n" +
+    "Proceed?"
+  );
+}
+</script>
+{% endblock %}

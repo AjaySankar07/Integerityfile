@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="ledger-banner {{ 'ledger-banner--ok' if ledger_intact else 'ledger-banner--broken' }}">
+  {% if ledger_intact %}
+    <span class="ledger-banner__icon">✓</span>
+    <div>
+      <strong>LEDGER INTEGRITY: SEALED</strong>
+      <p>All {{ total_events }} custody records verified &mdash; the chain has not been altered.</p>
+    </div>
+  {% else %}
+    <span class="ledger-banner__icon">⚠</span>
+    <div>
+      <strong>LEDGER INTEGRITY: BROKEN</strong>
+      <p>Chain mismatch detected at record #{{ broken_row }}. The audit log itself may have been tampered with.</p>
+    </div>
+  {% endif %}
+</div>
+
+<div class="stat-row">
+  <div class="stat-card">
+    <span class="stat-card__value">{{ watched_count }}</span>
+    <span class="stat-card__label">files watched</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-card__value">{{ total_events }}</span>
+    <span class="stat-card__label">total custody events</span>
+  </div>
+  <div class="stat-card stat-card--alert">
+    <span class="stat-card__value">{{ mismatch_count }}</span>
+    <span class="stat-card__label">mismatches flagged</span>
+  </div>
+</div>
+
+<div class="section-label">Case Index &mdash; Current Status Per File</div>
+
+{% if files %}
+<table class="index-table">
+  <thead>
+    <tr>
+      <th>Record ID</th>
+      <th>Status</th>
+      <th>Filename</th>
+      <th>Last Custodian</th>
+      <th>Last Event</th>
+      <th>SHA-256 (current)</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for f in files %}
+    <tr class="{{ 'row--alert' if f.status == 'MISMATCH' else '' }}">
+      <td>
+        <a class="link-btn mono" href="{{ url_for('lookup', id=f.id) }}" title="Open in Evidence Lookup">#{{ f.id }}</a>
+      </td>
+      <td>
+        <span class="stamp stamp--{{ f.status|lower }}">{{ f.status }}</span>
+      </td>
+      <td class="mono">{{ f.filename }}</td>
+      <td>{{ f.username }}</td>
+      <td>{{ f.upload_time }}</td>
+      <td class="mono hash-cell">{{ f.file_hash }}</td>
+      <td><a class="link-btn" href="{{ url_for('history', filename=f.filename) }}">History →</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <p>No files under watch yet. Upload the first file to open a case.</p>
+  <a class="btn" href="{{ url_for('upload') }}">Upload a File</a>
+</div>
+{% endif %}
+
+{% endblock %}

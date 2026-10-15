@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Upload{% endblock %}
+{% block content %}
+
+<div class="section-label">New Custody Entry</div>
+<p class="hint-text">
+  Upload a file to log it. If it's the first time this filename has been seen, it becomes the
+  <strong>BASELINE</strong> (known-good copy). Uploading it again later re-checks its hash against
+  the last recorded copy &mdash; a mismatch means the file changed since it was last verified.
+</p>
+
+<form class="upload-form" method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+  <label class="field">
+    <span class="field__label">Your Name / User ID</span>
+    <input type="text" name="username" placeholder="e.g. admin_raj" required>
+  </label>
+
+  <label class="field field--file" id="dropzone">
+    <span class="field__label">File</span>
+    <input type="file" name="file" id="fileInput" required>
+    <span class="field__filename" id="fileNameDisplay">No file selected</span>
+  </label>
+
+  <button type="submit" class="btn btn--primary">Submit to Ledger</button>
+</form>
+
+<script>
+  const input = document.getElementById('fileInput');
+  const display = document.getElementById('fileNameDisplay');
+  input.addEventListener('change', () => {
+    display.textContent = input.files.length ? input.files[0].name : 'No file selected';
+  });
+</script>
+
+{% endblock %}

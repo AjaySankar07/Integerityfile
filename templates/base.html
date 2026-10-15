@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Dashboard{% endblock %} · FIM Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <a href="{{ url_for('dashboard') }}" class="navbar__brand">
+        <span class="navbar__logo"><i class="ti ti-shield-check" aria-hidden="true"></i></span>
+        <span class="navbar__brand-text">FIM<span class="navbar__brand-accent">Ledger</span></span>
+      </a>
+      <div class="navbar__links">
+        <a href="{{ url_for('dashboard') }}" class="navbar__link {% if request.endpoint=='dashboard' %}navbar__link--active{% endif %}">
+          <i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard
+        </a>
+        <a href="{{ url_for('upload') }}" class="navbar__link {% if request.endpoint=='upload' %}navbar__link--active{% endif %}">
+          <i class="ti ti-upload" aria-hidden="true"></i>Upload
+        </a>
+        <a href="{{ url_for('ledger') }}" class="navbar__link {% if request.endpoint=='ledger' %}navbar__link--active{% endif %}">
+          <i class="ti ti-link" aria-hidden="true"></i>Ledger
+        </a>
+        <a href="{{ url_for('lookup') }}" class="navbar__link {% if request.endpoint=='lookup' %}navbar__link--active{% endif %}">
+          <i class="ti ti-search" aria-hidden="true"></i>Evidence
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash--{{ category }}">
+              <i class="ti {{ 'ti-alert-triangle' if category in ['error','alert'] else 'ti-circle-check' }}" aria-hidden="true"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="folder">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

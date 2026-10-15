@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}History · {{ filename }}{% endblock %}
+{% block content %}
+
+<div class="section-label">Audit Trail &mdash; <span class="mono">{{ filename }}</span></div>
+<p class="hint-text">Every version of this file ever submitted, oldest first. Each entry's hash is compared to the one before it.</p>
+
+<div class="trail">
+  {% for r in rows %}
+  <div class="trail-item">
+    <div class="trail-item__stamp">
+      <span class="stamp stamp--{{ r.status|lower }}">{{ r.status }}</span>
+    </div>
+    <div class="trail-item__body">
+      <div class="trail-item__meta">
+        <span class="mono">#{{ r.id }}</span> &middot; {{ r.upload_time }} &middot; uploaded by <strong>{{ r.username }}</strong>
+      </div>
+      <div class="trail-item__hash">
+        <span class="hash-label">SHA-256</span>
+        <span class="mono">{{ r.file_hash }}</span>
+      </div>
+      {% if r.prev_file_hash %}
+      <div class="trail-item__prev">
+        <span class="hash-label">compared to previous</span>
+        <span class="mono">{{ r.prev_file_hash }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Evidence file actions -->
+      <div class="trail-item__actions">
+        {% if r.stored_path and r.stored_path|evidence_exists %}
+          <a class="btn btn--sm" href="{{ url_for('download_evidence', record_id=r.id) }}" id="btn-dl-{{ r.id }}">
+            ⬇ Download
+          </a>
+          <form
+            method="POST"
+            action="{{ url_for('delete_evidence', record_id=r.id) }}"
+            class="inline-form"
+            id="del-form-{{ r.id }}"
+            onsubmit="return confirm('Delete the physical evidence file for record #{{ r.id }}?\n\nThe ledger entry and chain hash remain intact.')"
+          >
+            <input type="hidden" name="redirect_to" value="history">
+            <input type="hidden" name="history_filename" value="{{ filename }}">
+            <button type="submit" class="btn btn--sm btn--danger-outline" id="btn-del-{{ r.id }}">
+              🗑 Delete Copy
+            </button>
+          </form>
+        {% else %}
+          <span class="stamp stamp--removed stamp--sm">Evidence File Removed</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if not loop.last %}<div class="trail-connector"></div>{% endif %}
+  {% endfor %}
+</div>
+
+<a class="link-btn" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+
+{% endblock %}

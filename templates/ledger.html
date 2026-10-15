@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Full Ledger{% endblock %}
+{% block content %}
+
+<div class="section-label">Global Chain-of-Custody Ledger</div>
+<p class="hint-text">
+  Every record links to the cryptographic hash of the one before it. Edit any row in the database
+  directly and the chain breaks from that point forward &mdash; this is what makes the ledger
+  <strong>tamper-evident</strong>: an attacker can change a record, but cannot make the chain agree again.
+</p>
+
+<div class="ledger-banner {{ 'ledger-banner--ok' if ledger_intact else 'ledger-banner--broken' }}">
+  {% if ledger_intact %}
+    <span class="ledger-banner__icon">✓</span>
+    <div><strong>Chain verified end-to-end.</strong></div>
+  {% else %}
+    <span class="ledger-banner__icon">⚠</span>
+    <div><strong>Chain break detected at record #{{ broken_row }}.</strong></div>
+  {% endif %}
+</div>
+
+<div class="chain">
+  {% for r in rows %}
+  <div class="chain-link {{ 'chain-link--broken' if (not ledger_intact and broken_row and r.id >= broken_row) else '' }}">
+    <div class="chain-link__node">#{{ r.id }}</div>
+    <div class="chain-link__card">
+      <div class="chain-link__row">
+        <span class="stamp stamp--{{ r.status|lower }} stamp--sm">{{ r.status }}</span>
+        <span class="mono">{{ r.filename }}</span>
+        <span class="chain-link__time">{{ r.upload_time }}</span>
+      </div>
+      <div class="chain-link__hashes">
+        <div><span class="hash-label">file hash</span> <span class="mono">{{ r.file_hash[:24] }}&hellip;</span></div>
+        <div><span class="hash-label">record hash</span> <span class="mono">{{ r.record_hash[:24] }}&hellip;</span></div>
+      </div>
+    </div>
+  </div>
+  {% if not loop.last %}<div class="chain-arrow">↓</div>{% endif %}
+  {% endfor %}
+
+  {% if not rows %}
+  <div class="empty-state">
+    <p>Ledger is empty. Upload a file to create the first entry.</p>
+    <a class="btn" href="{{ url_for('upload') }}">Upload a File</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

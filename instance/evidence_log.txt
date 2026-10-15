@@ -1,0 +1,1 @@
+[2026-08-22 10:38:00] id=1 user=24ucy103 file=Ex.3_1.docx status=BASELINE sha256=c87014cd23f732bb2f3e22ac40e4b59d9c3a021d9d0067277db6cb0bda54c834 chain=c6657b44ccb60d68647a117a293be211bdadedc1b065a8ad22ca2e805dc27a6c
